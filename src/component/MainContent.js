@@ -9,7 +9,6 @@ class MainContent extends React.Component{
 
         this.state = {
             msgList: [],
-            msgShowing: [],
             sound: false,
             log: false
         }
@@ -30,11 +29,12 @@ class MainContent extends React.Component{
         const msgList = this.state.msgList.slice(0);
         msgList.push(content);
 
-        const msgShowing = this.filterMsg(msgList, this.state.log);
-        this.setState({ msgList, msgShowing });
+        this.setState({ msgList });
     }
 
-    filterMsg = (msgList, log) => {
+    filterMsg = () => {
+        const msgList = this.state.msgList.slice(0);
+        const log = this.state.log;
         const msgShowing = [];
 
         // only show gift message
@@ -47,11 +47,10 @@ class MainContent extends React.Component{
             return msgShowing;
         }
 
-        if(msgList.length < 20){
-            msgShowing.push(<li key={this.count}><p>已连接到房间</p></li>);
-        }
+        msgShowing.push(<li key={this.count}><p>已连接到房间</p></li>);
+        this.count++;
 
-        for(let temp of msgList.filter(msg => msg.type==='danmu').slice(msgList.length - 20, msgList.length)){
+        for(let temp of msgList.filter(msg => msg.type ==='danmu').slice(msgList.length - 20, msgList.length)){
             msgShowing.push(<li key={this.count}><p><a href={'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{temp.username + ': '}</a>{temp.content}</p></li>)
             this.count++;
         }
@@ -104,7 +103,8 @@ class MainContent extends React.Component{
                 const content = data.info[1];
 
                 if(this.state.sound){
-                    const lastOne = this.state.msgList[this.state.msgList.length - 1]
+                    const msgList = this.state.msgList.slice(0);
+                    const lastOne = msgList[msgList.length - 1]
 
                     if(lastOne.type === 'danmu' && lastOne.username === username && lastOne.content === content){
                         this.speak(username + "请不要刷屏");
@@ -125,7 +125,8 @@ class MainContent extends React.Component{
                 const username = data.data['uname']
 
                 if(this.state.sound){
-                    const lastOne = this.state.msgList[this.state.msgList.length - 1]
+                    const msgList = this.state.msgList.slice(0);
+                    const lastOne = msgList[msgList.length - 1]
                     this.speak(username + "进入了直播间");
                     if(lastOne.type === 'enter room' && lastOne.username === username)
                         this.speak(username + "请不要反复横跳");
@@ -142,7 +143,8 @@ class MainContent extends React.Component{
                 const num = data.data['num'];
 
                 if(this.state.sound){
-                    const lastOne = this.state.msgList[this.state.msgList.length - 1]
+                    const msgList = this.state.msgList.slice(0);
+                    const lastOne = msgList[msgList.length - 1]
                     if(lastOne.type !== 'gift' || (lastOne.username && lastOne.username !== username))
                         this.speak("感谢" + username + "赠送的礼物");
                 }
@@ -162,41 +164,31 @@ class MainContent extends React.Component{
     // mute
     switchSound = () => {
         if(this.state.sound){
-            this.setState({ sound: false });
             speechSynthesis.cancel();
+            this.setState({ sound: false });
         }else {
             this.setState({ sound: true });
         }
     }
 
     switchLog = () => {
-        if(!this.state.log){
-            this.setState({
-                msgShowing: this.filterMsg(this.state.msgList, true),
-                log: true
-            })
-        }else {
-            this.setState({
-                msgShowing: this.filterMsg(this.state.msgList, false),
-                log: false
-            })
-        }
+        this.setState({ log: !this.state.log})
     }
 
     cleanLog = () => {
-        this.setState({
-            msgList: [{type: "init", content: "Connected to room: " + this.props.roomId}],
-            msgShowing: [<li key={this.count}><p>已连接到房间</p></li>]
-        });
-
         speechSynthesis.cancel();
+
+        this.count = 0;
+        this.setState({
+            msgList: [{ type: "init", content: "refreshed" }]
+        });
     }
 
     render() {
         return(
             <div className='Wrapper'>
                 <ul id='danmuArea'>
-                    { this.state.msgShowing }
+                    { this.filterMsg() }
                 </ul>
                 <div className='btns'>
                     <button className='mainBtn' id='refresh' onClick={ this.cleanLog }>
@@ -206,7 +198,7 @@ class MainContent extends React.Component{
                         </svg>
                     </button>
                     <button className='mainBtn' id='gift' onClick={ this.switchLog }>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill={this.state.log ? "#fab1a0" :"currentColor"} className="bi" viewBox="0 0 16 16">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill={ this.state.log ? "#fab1a0" :"currentColor" } className="bi" viewBox="0 0 16 16">
                             <path d="M3 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0v.006c0 .07 0 .27-.038.494H15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 14.5V7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2.038A2.968 2.968 0 0 1 3 2.506V2.5zm1.068.5H7v-.5a1.5 1.5 0 1 0-3 0c0 .085.002.274.045.43a.522.522 0 0 0 .023.07zM9 3h2.932a.56.56 0 0 0 .023-.07c.043-.156.045-.345.045-.43a1.5 1.5 0 0 0-3 0V3zM1 4v2h6V4H1zm8 0v2h6V4H9zm5 3H9v8h4.5a.5.5 0 0 0 .5-.5V7zm-7 8V7H2v7.5a.5.5 0 0 0 .5.5H7z"/>
                         </svg>
                     </button>

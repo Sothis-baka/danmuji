@@ -1,5 +1,5 @@
 {
-  "description": "Nothing here",
+  "description": "蛋母鸡",
   "author": "Sothis",
   "name": "danmuji",
   "main": "public/electron.js",
@@ -51,6 +51,9 @@
     "wait-on": "^6.0.0"
   },
   "build": {
-    "appId": "<com.your_app>"
+    "appId": "<com.your_app>",
+    "win": {
+      "icon": "build/meko.ico"
+    }
   }
 }
