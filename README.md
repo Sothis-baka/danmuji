@@ -8,6 +8,8 @@ Sothis
 
 一个bilibili直播的弹幕姬
 
+room id不能是短id， 需要在个人空间查看对应长id， 或者使用浏览器查看post request的header
+
 ### Installation
 
 使用danmuji installer进行快速安装
