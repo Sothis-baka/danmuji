@@ -50,7 +50,7 @@ class MainContent extends React.Component{
         msgShowing.push(<li key={this.count}><p>已连接到房间</p></li>);
         this.count++;
 
-        for(let temp of msgList.filter(msg => msg.type ==='danmu').slice(msgList.length - 20, msgList.length)){
+        for(let temp of msgList.filter(msg => msg.type ==='danmu').slice(msgList.length-20 < 0 ? 0 : msgList.length-20, msgList.length)){
             msgShowing.push(<li key={this.count}><p><a href={'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{temp.username + ': '}</a>{temp.content}</p></li>)
             this.count++;
         }
