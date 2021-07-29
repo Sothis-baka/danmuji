@@ -37,7 +37,10 @@ Serveral problem I met when building this project
 
   Windows has a different command line from most tutorials.
 
-  
+* Icon can't be set
+
+  Put icon in public folder, after react build, set icon path to build/icon.ico in json file
+
+
 
 8说了，告辞
-
