@@ -37,22 +37,25 @@ class MainContent extends React.Component{
         const log = this.state.log;
         const msgShowing = [];
 
+        let count = 0;
+
         // only show gift message
         if(log){
             for(let giftMsg of msgList.filter(msg => msg.type === "gift")){
-                msgShowing.push(<li key={this.count}><p><small><span className='username'>{ giftMsg.username }</span>赠送了{ giftMsg.num }个<span className='giftName'>{  giftMsg.giftName }</span></small></p></li>);
-                this.count++;
+                msgShowing.push(<li key={count}><p><small><span className='username'>{ giftMsg.username }</span>赠送了{ giftMsg.num }个<span className='giftName'>{  giftMsg.giftName }</span></small></p></li>);
+                count++;
             }
 
             return msgShowing;
         }
 
-        msgShowing.push(<li key={this.count}><p>已连接到房间</p></li>);
-        this.count++;
+        msgShowing.push(<li key={count}><p>已连接到房间</p></li>);
+        count++;
 
-        for(let temp of msgList.filter(msg => msg.type ==='danmu').slice(msgList.length-20 < 0 ? 0 : msgList.length-20, msgList.length)){
-            msgShowing.push(<li key={this.count}><p><a href={'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{temp.username + ': '}</a>{temp.content}</p></li>)
-            this.count++;
+        const danmus = msgList.filter(msg => msg.type ==='danmu');
+        for(let temp of danmus.slice(danmus.length - 20, danmus.length)){
+            msgShowing.push(<li key={count}><p><a href={'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{temp.username + ': '}</a>{temp.content}</p></li>)
+            count++;
         }
 
         let content;
@@ -60,15 +63,15 @@ class MainContent extends React.Component{
         const greetings = msgList.filter(msg => msg.type === "enter room")
         if(greetings.length > 0){
             content = greetings[greetings.length - 1];
-            msgShowing.push(<li key={this.count}><p><small><span className='username'>{ content.username }</span> 进入了直播间</small></p></li>);
-            this.count++;
+            msgShowing.push(<li key={count}><p><small><span className='username'>{ content.username }</span> 进入了直播间</small></p></li>);
+            count++;
         }
 
         const gifts = msgList.filter(msg => msg.type === "gift")
         if(gifts.length > 0){
             content = gifts[gifts.length - 1];
-            msgShowing.push(<li key={this.count}><p><small><span className='username'>{ content.username }</span> 赠送了 { content.num } 个 <span className='giftName'>{ content.giftName }</span></small></p></li>)
-            this.count++;
+            msgShowing.push(<li key={count}><p><small><span className='username'>{ content.username }</span> 赠送了 { content.num } 个 <span className='giftName'>{ content.giftName }</span></small></p></li>)
+            count++;
         }
 
         return msgShowing
