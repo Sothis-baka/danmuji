@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Source+Sans+Pro&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    overflow-y: hidden;
+    font-family: 'Source Sans Pro', sans-serif;
+}
+
+.Wrapper{
+    position: relative;
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.1em;
+
+    padding: 1em 0;
+    border-radius: 12px;
+
+    background-color: rgba(0, 0, 0, 0.18);
+}
+
+#roomIdInput{
+    box-sizing: border-box;
+    outline: none;
+    border: none;
+
+    font-size: 0.8em;
+
+    height: 2em;
+    width: 12em;
+
+    margin-right: 1em;
+    text-align: center;
+
+    color: #ffeaa7;
+    background-color: rgba(200, 200, 200, 0.4);
+}
+
+#roomIdInput::placeholder{
+    font-size: 0.9em;
+    color: #ffeaa7;
+}
+
+#roomIdBtn{
+    border: none;
+    border-radius: 2px;
+    outline: none;
+
+    font-size: 0.8em;
+
+    height: 2em;
+    width: 3.2em;
+
+    color: aliceblue;
+    background-color: #ff6b6b;
+
+    cursor: pointer;
+}
+
+#roomIdBtn:hover{
+    transform: scale(1.02);
+}
+
+ul{
+    display: flex;
+    flex-direction: column;
+
+    max-height: 240px;
+
+    box-sizing: border-box;
+
+    text-decoration: none;
+    margin: 0;
+
+    overflow-y: scroll;
+}
+
+ul::-webkit-scrollbar{
+    display: none;
+}
+
+li{
+    display: block;
+
+    width: 348px;
+
+    color: aliceblue;
+}
+
+li p {
+    margin-left: 12px;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 0.96em;
+}
+
+li p a{
+    text-decoration: none;
+    color: #81ecec;
+}
+
+li p a:hover{
+    text-decoration: underline;
+}
+
+.username{
+    color: #fab1a0;
+}
+
+.giftName{
+    color: #ffeaa7;
+}
+
+.btns{
+    display: flex;
+    position: absolute;
+
+    flex-direction: row;
+
+    right: 2em;
+    bottom: 0;
+
+    overflow: hidden;
+}
+
+.mainBtn{
+    border: none;
+    outline: none;
+
+    height: 18px;
+    width: 18px;
+
+    margin-left: 0.4em;
+
+    color: #636e72;
+    background-color: transparent;
+
+    cursor: pointer;
+}
+
+.mainBtn:hover .bi{
+    transform: translateY(-1px);
+}
+
+#refresh:hover{
+    color: #fdcb6e;
+}
+
+#gift{
+    height: 14px;
+    width: 14px;
+
+    margin-top: 1px;
+}
+
+#gift:hover{
+    color: #fab1a0;
+}
+
+#mute{
+    opacity: 0.8;
+}
+
+#mute:hover{
+    opacity: 0.5;
+}
+
+#exit:hover{
+    color: #ED4C67;
+}
