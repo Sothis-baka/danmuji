@@ -1,6 +1,8 @@
 # 蛋母鸡
 
-bilibili弹幕姬
+### Author
+
+Sothis
 
 ### Description
 
@@ -8,7 +10,7 @@ bilibili弹幕姬
 
 ### Installation
 
-dist 文件夹中有提供给windows的快速安装程序
+使用danmuji installer进行快速安装
 
 ### Dependency
 
