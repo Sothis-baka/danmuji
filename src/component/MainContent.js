@@ -40,15 +40,19 @@ class MainContent extends React.Component{
         // only show gift message
         if(log){
             for(let giftMsg of msgList.filter(msg => msg.type === "gift")){
-                msgShowing.push(<li key={this.count}><p><small><span className='username'>{ giftMsg.username }</span> 赠送了 { giftMsg.num } 个 <span className='giftName'>{  giftMsg.giftName }</span></small></p></li>);
+                msgShowing.push(<li key={this.count}><p><small><span className='username'>{ giftMsg.username }</span>赠送了{ giftMsg.num }个<span className='giftName'>{  giftMsg.giftName }</span></small></p></li>);
                 this.count++;
             }
 
             return msgShowing;
         }
 
-        for(let temp of msgList.filter(msg => msg.type==='danmu').slice(0, 20)){
-            msgShowing.push(<li key={this.count}><p><a href={'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{temp.username}</a>{': ' + temp.content}</p></li>)
+        if(msgList.length < 20){
+            msgShowing.push(<li key={this.count}><p>已连接到房间</p></li>);
+        }
+
+        for(let temp of msgList.filter(msg => msg.type==='danmu').slice(msgList.length - 20, msgList.length)){
+            msgShowing.push(<li key={this.count}><p><a href={'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{temp.username + ': '}</a>{temp.content}</p></li>)
             this.count++;
         }
 
@@ -181,10 +185,8 @@ class MainContent extends React.Component{
 
     cleanLog = () => {
         this.setState({
-            msgList: [],
-            msgShowing: [],
-            sound: false,
-            log: false
+            msgList: [{type: "init", content: "Connected to room: " + this.props.roomId}],
+            msgShowing: [<li key={this.count}><p>已连接到房间</p></li>]
         });
 
         speechSynthesis.cancel();
@@ -235,7 +237,7 @@ class MainContent extends React.Component{
             </div>
 
         );
-    }
+    };
 }
 
 export default MainContent;

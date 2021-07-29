@@ -8,6 +8,15 @@
 body{
     overflow-y: hidden;
     font-family: 'Source Sans Pro', sans-serif;
+    -webkit-app-region: drag;
+}
+
+input{
+    -webkit-app-region: no-drag;
+}
+
+button{
+    -webkit-app-region: no-drag;
 }
 
 .Wrapper{
@@ -19,7 +28,8 @@ body{
 
     font-size: 1.1em;
 
-    padding: 1em 0;
+    margin-top: 0.2em;
+    padding: 1em 0em;
     border-radius: 12px;
 
     background-color: rgba(0, 0, 0, 0.18);
@@ -88,31 +98,37 @@ ul::-webkit-scrollbar{
 li{
     display: block;
 
-    width: 348px;
+    width: 92vw;
 
     color: aliceblue;
 }
 
 li p {
-    margin-left: 12px;
-    margin-top: 0.2em;
-    margin-bottom: 0.2em;
+    margin: 0.2em 3.6vw;
 
     font-family: 'Ma Shan Zheng', cursive;
     font-size: 0.96em;
 }
 
 li p a{
+    font-family: "仿宋", "Arial Narrow", serif;
+    font-weight: 600;
     text-decoration: none;
-    color: #81ecec;
+    color: #0abde3;
 }
 
 li p a:hover{
     text-decoration: underline;
 }
 
+li p small{
+    font-size: 0.8em;
+    font-family: "楷体", "Arial Narrow", serif;
+    font-weight: 400;
+}
+
 .username{
-    color: #fab1a0;
+    color: #0abde3;
 }
 
 .giftName{

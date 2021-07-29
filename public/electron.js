@@ -6,9 +6,10 @@ const path = require("path");
 const isDev = require("electron-is-dev");
 let mainWindow;
 function createWindow() {
-    mainWindow = new BrowserWindow({ width: 360, height: 280, frame: false, transparent: true, icon: __dirname + '/favicon.ico' });
+    mainWindow = new BrowserWindow({ width: 320, height: 280, frame: false, transparent: true, icon: __dirname + '/favicon.ico' });
     mainWindow.setPosition( -7, 0);
     mainWindow.setAlwaysOnTop(true, 'screen');
+    mainWindow.setResizable(true);
     mainWindow.loadURL(
         isDev
             ? "http://localhost:3000"
