@@ -7,7 +7,7 @@ class MainContent extends React.Component{
 
         this.state = {
             msgList: [],
-            sound: false,
+            sound: true,
             log: false
         }
 
@@ -70,49 +70,10 @@ class MainContent extends React.Component{
     }
 
     speak = (str) => {
-        const words = this.splitWords(str.trim().replace(/[.*+?^${}()_-]/g, ' '));
-
-        const msgList = [];
-        for(let word of words){
-            if(!word){
-                continue;
-            }
-            const msg = new SpeechSynthesisUtterance(word.trim());
-
-            if(/.*[\u4e00-\u9fa5]+.*$/.test(word)){
-                msg.lang = "zh";
-                msg.voice = this.speechSynthesis.getVoices()[28];
-                msg.rate = 1.2;
-            } else {
-                msg.lang = "en";
-                msg.voice = this.speechSynthesis.getVoices()[2];
-                msg.rate = 1.4;
-            }
-
-            msgList.push(msg);
-        }
-
-        if(this.state.sound){
-            for(let msg of msgList){
-                this.speechSynthesis.speak(msg);
-            }
-        }
-    }
-
-    splitWords = (str) => {
-        const list = [];
-
-        const regexp = /\s*[a-zA-Z ]+\s*/g;
-        let match;
-        let last = 0;
-        while((match = regexp.exec(str)) !== null){
-            list.push(str.substring(last, match.index));
-            list.push(match[0])
-            last = regexp.lastIndex;
-        }
-        list.push(str.substring(last));
-
-        return list;
+        const msg = new SpeechSynthesisUtterance(str.trim());
+        msg.lang = 'zh';
+        msg.rate = 1.2;
+        this.speechSynthesis.speak(msg);
     }
 
     initLive = () => {
@@ -120,7 +81,7 @@ class MainContent extends React.Component{
 
         live.on('open', () => {
             if(this.state.sound){
-                this.speak("Connecting");
+                this.speak("连接中");
             }
         });
 
@@ -132,7 +93,7 @@ class MainContent extends React.Component{
             });
 
             if(this.state.sound){
-                this.speak("Connected to room " + this.props.roomId);
+                this.speak("已连接到直播间" + this.props.roomId);
             }
 
             live.on('heartbeat', () => {});
@@ -146,10 +107,14 @@ class MainContent extends React.Component{
                     const msgList = this.state.msgList.slice(0);
                     const lastOne = msgList[msgList.length - 1]
 
-                    if(lastOne.type === 'danmu' && lastOne.username === username && lastOne.content === content){
-                        this.speak(username + "请不要刷屏");
+                    if(lastOne.type === 'danmu' && lastOne.username === username){
+                        if(lastOne.content === content) {
+                            this.speak(username + "请不要刷屏");
+                        }else {
+                            this.speak(content);
+                        }
                     }else{
-                        this.speak(username + "说 " + content);
+                        this.speak(username + "说：" + content);
                     }
                 }
 
@@ -179,6 +144,7 @@ class MainContent extends React.Component{
                     count: ++this.count
                 })
             })
+
             live.on('SEND_GIFT', (data) => {
                 const username = data.data['uname'];
                 const giftName = data.data['giftName'];
@@ -186,13 +152,11 @@ class MainContent extends React.Component{
 
                 if(this.state.sound){
                     const msgList = this.state.msgList.slice(0);
-                    const lastOne = msgList[msgList.length - 1]
+                    const lastOne = msgList[msgList.length - 1];
+
                     if(lastOne.type !== 'gift' || (lastOne.username && lastOne.username !== username)){
                         this.speak("感谢" + username + "赠送的" + num + "个" + giftName);
-                    }else{
-                        this.speak("附加了" + num + "个" + giftName);
                     }
-
                 }
 
                 this.addMsg({
@@ -205,7 +169,7 @@ class MainContent extends React.Component{
             })
         })
 
-        live.on('close', () => this.addMsg("Disconnected"));
+        live.on('close', () => this.addMsg({ type:"disconnect" }));
     }
 
     // mute
