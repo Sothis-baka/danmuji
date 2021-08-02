@@ -1,8 +1,6 @@
 import React from "react";
 const { LiveWS } = require('bilibili-live-ws');
 
-const speechSynthesis = window.speechSynthesis;
-
 class MainContent extends React.Component{
     constructor(props) {
         super(props);
@@ -14,6 +12,7 @@ class MainContent extends React.Component{
         }
 
         this.count = 0;
+        this.speechSynthesis = window.speechSynthesis;
     }
 
     componentDidMount= () => {
@@ -37,25 +36,20 @@ class MainContent extends React.Component{
         const log = this.state.log;
         const msgShowing = [];
 
-        let count = 0;
-
         // only show gift message
         if(log){
             for(let giftMsg of msgList.filter(msg => msg.type === "gift")){
-                msgShowing.push(<li key={count}><p><small><span className='username'>{ giftMsg.username }</span>赠送了{ giftMsg.num }个<span className='giftName'>{  giftMsg.giftName }</span></small></p></li>);
-                count++;
+                msgShowing.push(<li key={giftMsg.count}><p><small><span className='username'>{ giftMsg.username }</span>赠送了{ giftMsg.num }个<span className='giftName'>{  giftMsg.giftName }</span></small></p></li>);
             }
 
             return msgShowing;
         }
 
-        msgShowing.push(<li key={count}><p>已连接到房间</p></li>);
-        count++;
+        msgShowing.push(<li key={0}><p>已连接到房间</p></li>);
 
         const danmus = msgList.filter(msg => msg.type ==='danmu');
         for(let temp of danmus.slice(danmus.length - 20, danmus.length)){
-            msgShowing.push(<li key={count}><p><a href={'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{temp.username + ': '}</a>{temp.content}</p></li>)
-            count++;
+            msgShowing.push(<li key={temp.count}><p><a href={ 'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{ temp.username }</a>: { temp.content }</p></li>)
         }
 
         let content;
@@ -63,41 +57,84 @@ class MainContent extends React.Component{
         const greetings = msgList.filter(msg => msg.type === "enter room")
         if(greetings.length > 0){
             content = greetings[greetings.length - 1];
-            msgShowing.push(<li key={count}><p><small><span className='username'>{ content.username }</span> 进入了直播间</small></p></li>);
-            count++;
+            msgShowing.push(<li key={content.count}><p><small><span className='username'>{ content.username }</span> 进入了直播间</small></p></li>);
         }
 
         const gifts = msgList.filter(msg => msg.type === "gift")
         if(gifts.length > 0){
             content = gifts[gifts.length - 1];
-            msgShowing.push(<li key={count}><p><small><span className='username'>{ content.username }</span> 赠送了 { content.num } 个 <span className='giftName'>{ content.giftName }</span></small></p></li>)
-            count++;
+            msgShowing.push(<li key={content.count}><p><small><span className='username'>{ content.username }</span> 赠送了 { content.num } 个 <span className='giftName'>{ content.giftName }</span></small></p></li>)
         }
 
         return msgShowing
     }
 
     speak = (str) => {
-        const msg = new SpeechSynthesisUtterance(str);
-        msg.lang = 'zh';
-        speechSynthesis.speak(msg);
+        const words = this.splitWords(str.trim().replace(/[.*+?^${}()_-]/g, ' '));
+
+        const msgList = [];
+        for(let word of words){
+            if(!word){
+                continue;
+            }
+            const msg = new SpeechSynthesisUtterance(word.trim());
+
+            if(/.*[\u4e00-\u9fa5]+.*$/.test(word)){
+                msg.lang = "zh";
+                msg.voice = this.speechSynthesis.getVoices()[28];
+                msg.rate = 1.2;
+            } else {
+                msg.lang = "en";
+                msg.voice = this.speechSynthesis.getVoices()[2];
+                msg.rate = 1.4;
+            }
+
+            msgList.push(msg);
+        }
+
+        if(this.state.sound){
+            for(let msg of msgList){
+                this.speechSynthesis.speak(msg);
+            }
+        }
+    }
+
+    splitWords = (str) => {
+        const list = [];
+
+        const regexp = /\s*[a-zA-Z ]+\s*/g;
+        let match;
+        let last = 0;
+        while((match = regexp.exec(str)) !== null){
+            list.push(str.substring(last, match.index));
+            list.push(match[0])
+            last = regexp.lastIndex;
+        }
+        list.push(str.substring(last));
+
+        return list;
     }
 
     initLive = () => {
         const live = new LiveWS(Number(this.props.roomId));
 
         live.on('open', () => {
-            this.addMsg({
-                type: "init",
-                content: "Connected to room: " + this.props.roomId
-            });
-
             if(this.state.sound){
-                this.speak("Connected to room: " + this.props.roomId);
+                this.speak("Connecting");
             }
         });
 
         live.on('live', () => {
+            this.addMsg({
+                type: "init",
+                content: "",
+                count: ++this.count
+            });
+
+            if(this.state.sound){
+                this.speak("Connected to room " + this.props.roomId);
+            }
+
             live.on('heartbeat', () => {});
 
             live.on('DANMU_MSG', (data) => {
@@ -120,7 +157,8 @@ class MainContent extends React.Component{
                     type: "danmu",
                     username,
                     userId,
-                    content
+                    content,
+                    count: ++this.count
                 })
             })
 
@@ -137,7 +175,8 @@ class MainContent extends React.Component{
 
                 this.addMsg({
                     type: "enter room",
-                    username
+                    username,
+                    count: ++this.count
                 })
             })
             live.on('SEND_GIFT', (data) => {
@@ -148,15 +187,20 @@ class MainContent extends React.Component{
                 if(this.state.sound){
                     const msgList = this.state.msgList.slice(0);
                     const lastOne = msgList[msgList.length - 1]
-                    if(lastOne.type !== 'gift' || (lastOne.username && lastOne.username !== username))
-                        this.speak("感谢" + username + "赠送的礼物");
+                    if(lastOne.type !== 'gift' || (lastOne.username && lastOne.username !== username)){
+                        this.speak("感谢" + username + "赠送的" + num + "个" + giftName);
+                    }else{
+                        this.speak("附加了" + num + "个" + giftName);
+                    }
+
                 }
 
                 this.addMsg({
                     type: "gift",
                     username,
                     giftName,
-                    num
+                    num,
+                    count: ++this.count
                 })
             })
         })
@@ -167,7 +211,7 @@ class MainContent extends React.Component{
     // mute
     switchSound = () => {
         if(this.state.sound){
-            speechSynthesis.cancel();
+            this.speechSynthesis.cancel();
             this.setState({ sound: false });
         }else {
             this.setState({ sound: true });
@@ -175,11 +219,11 @@ class MainContent extends React.Component{
     }
 
     switchLog = () => {
-        this.setState({ log: !this.state.log})
+        this.setState({ log: !this.state.log })
     }
 
     cleanLog = () => {
-        speechSynthesis.cancel();
+        this.speechSynthesis.cancel();
 
         this.count = 0;
         this.setState({
@@ -187,25 +231,34 @@ class MainContent extends React.Component{
         });
     }
 
+    exitRoom = () => {
+        if(this.state.sound){
+            this.switchSound();
+        }
+        setTimeout(()=>{
+            this.props.selectRoom(-1);
+        }, 500)
+    }
+
     render() {
         return(
             <div className='Wrapper'>
-                <ul id='danmuArea'>
+                <ul id='danmuArea' className="noDrag">
                     { this.filterMsg() }
                 </ul>
                 <div className='btns'>
-                    <button className='mainBtn' id='refresh' onClick={ this.cleanLog }>
+                    <button className='mainBtn' id='refresh' title='refresh' onClick={ this.cleanLog }>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="bi" viewBox="0 0 16 16">
                             <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
                             <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
                         </svg>
                     </button>
-                    <button className='mainBtn' id='gift' onClick={ this.switchLog }>
+                    <button className='mainBtn' id='gift' title={ this.state.log ? 'show all message' : 'only show gifts' } onClick={ this.switchLog }>
                         <svg xmlns="http://www.w3.org/2000/svg" fill={ this.state.log ? "#fab1a0" :"currentColor" } className="bi" viewBox="0 0 16 16">
                             <path d="M3 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0v.006c0 .07 0 .27-.038.494H15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 14.5V7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2.038A2.968 2.968 0 0 1 3 2.506V2.5zm1.068.5H7v-.5a1.5 1.5 0 1 0-3 0c0 .085.002.274.045.43a.522.522 0 0 0 .023.07zM9 3h2.932a.56.56 0 0 0 .023-.07c.043-.156.045-.345.045-.43a1.5 1.5 0 0 0-3 0V3zM1 4v2h6V4H1zm8 0v2h6V4H9zm5 3H9v8h4.5a.5.5 0 0 0 .5-.5V7zm-7 8V7H2v7.5a.5.5 0 0 0 .5.5H7z"/>
                         </svg>
                     </button>
-                    <button className='mainBtn' id='mute' onClick={ this.switchSound }>
+                    <button className='mainBtn' id='mute' title={ this.state.sound ? 'mute' : 'unmute' } onClick={ this.switchSound }>
                         {
                             this.state.sound
                                 ?
@@ -220,7 +273,7 @@ class MainContent extends React.Component{
                                 </svg>
                         }
                     </button>
-                    <button className='mainBtn' id='exit' onClick={ () => this.props.selectRoom(-1) }>
+                    <button className='mainBtn' id='exit' title='exit room' onClick={ this.exitRoom }>
                         {
                             <svg xmlns="http://www.w3.org/2000/svg" fill='currentColor' className="bi" viewBox="0 0 16 16">
                                 <path d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>

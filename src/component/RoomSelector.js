@@ -14,7 +14,7 @@ const RoomSelector = ({ selectRoom }) => {
 
     return (
         <form className='Wrapper' id='roomSelector' onSubmit={ handleSubmit }>
-            <input type='text' id='roomIdInput' placeholder='Enter room id here'/>
+            <input type='text' id='roomIdInput' placeholder={'Enter room id here'}/>
             <input type='submit' id='roomIdBtn' value='Go'/>
         </form>
     );

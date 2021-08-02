@@ -1,5 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Source+Sans+Pro&display=swap');
 
+@keyframes showLater {
+    from{
+        opacity: 0.6;
+    }
+    to{
+        opacity: 1;
+    }
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -9,6 +18,10 @@ body{
     overflow-y: hidden;
     font-family: 'Source Sans Pro', sans-serif;
     -webkit-app-region: drag;
+}
+
+.noDrag{
+    -webkit-app-region: no-drag;
 }
 
 input{
@@ -29,10 +42,10 @@ button{
     font-size: 1.1em;
 
     margin-top: 0.2em;
-    padding: 1em 0em;
+    padding: 1em 0;
     border-radius: 12px;
 
-    background-color: rgba(0, 0, 0, 0.18);
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
 #roomIdInput{
@@ -99,8 +112,9 @@ li{
     display: block;
 
     width: 92vw;
-
     color: aliceblue;
+
+    animation: showLater 1s ease-out;
 }
 
 li p {
@@ -141,8 +155,8 @@ li p small{
 
     flex-direction: row;
 
-    right: 2em;
-    bottom: 0;
+    right: 1.8em;
+    bottom: 1px;
 
     overflow: hidden;
 }
@@ -156,7 +170,7 @@ li p small{
 
     margin-left: 0.4em;
 
-    color: #636e72;
+    color: rgba(255, 255, 255, 0.4);
     background-color: transparent;
 
     cursor: pointer;
@@ -164,6 +178,18 @@ li p small{
 
 .mainBtn:hover .bi{
     transform: translateY(-1px);
+}
+
+#drag{
+    height: 15px;
+    width: 15px;
+
+    margin-top: 1px;
+    color: #0abde3;
+}
+
+#drag.noDrag{
+    color: #636e72;
 }
 
 #refresh:hover{
