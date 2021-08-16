@@ -1,29 +1,31 @@
 import React from "react";
 
-import MainContent from "./component/MainContent";
-import RoomSelector from "./component/RoomSelector";
 import './App.css';
+import Entrance from "./component/Entrance";
+import MainContent from "./component/MainContent";
 
 class App extends React.Component{
-  constructor(props) {
-    super(props);
+    constructor(props) {
+        super(props);
 
-    this.state = { roomId: -1 };
-  }
+        this.state = { roomId: -1 };
+    }
 
-  selectRoom = (input) => {
-    this.setState({ roomId: input })
-  }
+    setRoomId = (input) => {
+        this.setState({ roomId: input })
+    }
 
-  render() {
-    return (
-        <div className="App">
-          {
-            this.state.roomId < 0 ? <RoomSelector selectRoom={ this.selectRoom }/> : <MainContent roomId={ this.state.roomId } selectRoom={ this.selectRoom } />
-          }
-        </div>
-    );
-  }
+    render() {
+        const roomId = this.state.roomId;
+
+        return (
+            <div className="App">
+                <div id="wrapper">
+                    {roomId < 0 ? <Entrance setRoomId={ this.setRoomId }/> : <MainContent roomId={ roomId } setRoomId={ this.setRoomId }/>}
+                </div>
+            </div>
+        );
+    }
 }
 
 export default App;

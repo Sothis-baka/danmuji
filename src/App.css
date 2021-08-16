@@ -1,220 +1,317 @@
-@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Source+Sans+Pro&display=swap');
+/* global setting */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=ZCOOL+KuaiLe&display=swap');
 
-@keyframes showLater {
-    from{
-        opacity: 0.6;
-    }
-    to{
-        opacity: 1;
-    }
-}
-
-* {
+*{
     margin: 0;
     padding: 0;
 }
 
-body{
-    overflow-y: hidden;
-    font-family: 'Source Sans Pro', sans-serif;
-    -webkit-app-region: drag;
-}
-
-.noDrag{
-    -webkit-app-region: no-drag;
-}
-
-input{
-    -webkit-app-region: no-drag;
-}
-
-button{
-    -webkit-app-region: no-drag;
-}
-
-.Wrapper{
-    position: relative;
+.App{
     display: flex;
 
     align-items: center;
     justify-content: center;
 
-    font-size: 1.1em;
-
-    margin-top: 0.2em;
-    padding: 1em 0;
-    border-radius: 12px;
-
-    background-color: rgba(0, 0, 0, 0.6);
+    height: 100vh;
 }
 
-#roomIdInput{
-    box-sizing: border-box;
-    outline: none;
+#wrapper{
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    height: 280px;
+    width: 320px;
+
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.4);
+    -webkit-app-region: drag;
+}
+
+input{
     border: none;
-
-    font-size: 0.8em;
-
-    height: 2em;
-    width: 12em;
-
-    margin-right: 1em;
-    text-align: center;
-
-    color: #ffeaa7;
-    background-color: rgba(200, 200, 200, 0.4);
-}
-
-#roomIdInput::placeholder{
-    font-size: 0.9em;
-    color: #ffeaa7;
-}
-
-#roomIdBtn{
-    border: none;
-    border-radius: 2px;
     outline: none;
 
-    font-size: 0.8em;
-
-    height: 2em;
-    width: 3.2em;
-
-    color: aliceblue;
-    background-color: #ff6b6b;
-
-    cursor: pointer;
+    -webkit-app-region: no-drag;
 }
 
-#roomIdBtn:hover{
-    transform: scale(1.02);
+svg{
+    -webkit-app-region: no-drag;
 }
 
-ul{
+::-webkit-scrollbar {
+    width: 0;
+}
+
+/* animation */
+@keyframes shake{
+    0% {
+        transform: translateY(0px);
+    }
+    25% {
+        transform: translateY(4px);
+    }
+    50% {
+        transform: translateY(0px);
+    }
+    75% {
+        transform: translateY(-4px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes zoomInOut {
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes showFromNothing {
+    0% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Entrance */
+#entrance{
     display: flex;
     flex-direction: column;
 
-    max-height: 240px;
-
-    box-sizing: border-box;
-
-    text-decoration: none;
-    margin: 0;
-
-    overflow-y: scroll;
+    align-items: center;
+    justify-content: center;
 }
 
-ul::-webkit-scrollbar{
-    display: none;
+#entrance p{
+    margin: 1em;
+
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 2em;
+    color: #7ed6df;
+
+    cursor: default;
 }
 
-li{
+#entrance input{
+    font-size: 1.2em;
+
+    margin: 0.6em;
+}
+
+#entrance input[type="text"]{
     display: block;
 
-    width: 92vw;
+    padding: 4px;
+    border-radius: 2px;
+
+    width: 180px;
+    text-align: center;
+
     color: aliceblue;
-
-    animation: showLater 1s ease-out;
+    background-color: rgba(255, 255, 255, 0.4);
 }
 
-li p {
-    margin: 0.2em 3.6vw;
+#entrance input[type="text"]::placeholder{
+    transform: scale(0.8);
 
-    font-family: 'Ma Shan Zheng', cursive;
-    font-size: 0.96em;
+    color: aliceblue;
 }
 
-li p a{
-    font-family: "仿宋", "Arial Narrow", serif;
-    font-weight: 600;
-    text-decoration: none;
-    color: #0abde3;
-}
+#entrance input[type="submit"]{
+    display: block;
 
-li p a:hover{
-    text-decoration: underline;
-}
+    padding: 4px;
+    border-radius: 4px;
 
-li p small{
-    font-size: 0.8em;
-    font-family: "楷体", "Arial Narrow", serif;
-    font-weight: 400;
-}
-
-.username{
-    color: #0abde3;
-}
-
-.giftName{
-    color: #ffeaa7;
-}
-
-.btns{
-    display: flex;
-    position: absolute;
-
-    flex-direction: row;
-
-    right: 1.8em;
-    bottom: 1px;
-
-    overflow: hidden;
-}
-
-.mainBtn{
-    border: none;
-    outline: none;
-
-    height: 18px;
-    width: 18px;
-
-    margin-left: 0.4em;
-
-    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Dancing Script', cursive;
+    font-size: 2em;
+    color: #ff7979;
     background-color: transparent;
+}
 
+#entrance input[type="submit"]:hover{
     cursor: pointer;
+
+    animation: shake 0.5s ease-in-out,zoomInOut 0.5s ease-in-out;
 }
 
-.mainBtn:hover .bi{
-    transform: translateY(-1px);
+/* main content */
+#mainContent{
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 280px;
+
+    font-family: KaiTi, serif;
+    color: aliceblue;
 }
 
-#drag{
-    height: 15px;
-    width: 15px;
+#danMuArea{
+    list-style: none;
+    user-select: none;
 
-    margin-top: 1px;
-    color: #0abde3;
+    -webkit-app-region: no-drag;
+
+    height: 260px;
+    max-height: 260px;
+    overflow-y: scroll;
+
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
-#drag.noDrag{
-    color: #636e72;
+#danMuArea li{
+    margin: 0.4em 0.2em 0.4em 0.4em;
+
+    animation: showFromNothing 1s ease-out;
 }
 
-#refresh:hover{
-    color: #fdcb6e;
+#danMuArea .medal{
+    display: inline-block;
+
+    border: 1px solid #7ed6df;
+    border-radius: 4px;
+
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+
+    font-size: 0.8em;
 }
 
-#gift{
-    height: 14px;
-    width: 14px;
-
-    margin-top: 1px;
+#danMuArea .medal span{
+    font-family: FangSong, serif;
 }
 
-#gift:hover{
+#danMuArea .medalName{
+    color: #c7ecee;
+}
+
+#danMuArea .medalLevel{
+    color: #c7ecee;
+}
+
+#danMuArea a{
+    text-decoration: none;
+
+    color: #00cec9;
+}
+
+#danMuArea .username{
+    color: #74b9ff;
+}
+
+#danMuArea .giftDisplay{
+    font-size: 0.8em;
+}
+
+#danMuArea .userIcon{
+    display: inline-block;
+    vertical-align: middle;
+
+    height: 1.4em;
+    width: 1.4em;
+
+    border-radius: 50%;
+    margin-bottom: 4px;
+}
+
+#danMuArea .userIcon:hover{
+    transform: scale(1.6);
+}
+
+#danMuArea .giftNum{
+    color: #55efc4;
+}
+
+#danMuArea .giftName{
+    color: #f6e58d;
+}
+
+#danMuArea .enterEffect{
+    font-size: 0.8em;
+}
+
+#danMuArea .specialEnter{
+    /* first date */
     color: #fab1a0;
 }
 
-#mute{
-    opacity: 0.8;
+/* btn group */
+#btnList{
+    display: flex;
+    flex-direction: row;
+
+    position: absolute;
+    bottom: -5px;
+    right: -2px;
 }
 
-#mute:hover{
-    opacity: 0.5;
+#btnList li{
+    display: inline-block;
+    padding: 2px;
+    border-radius: 50%;
+
+    list-style: none;
 }
 
-#exit:hover{
-    color: #ED4C67;
+#btnList li:hover{
+    cursor: pointer;
+    background-color: rgba(116, 125, 140, 0.6);
 }
+
+#btnList li.conceal{
+    display: none;
+}
+
+#btnList svg{
+    height: 0.9em;
+    width: 0.9em;
+
+    color: #ced6e0;
+
+    margin-left: 0.1em;
+    margin-right: 0.1em;
+    margin-bottom: 2px;
+    vertical-align: middle;
+}
+
+#btnList li:hover svg{
+    color: #a4b0be;
+}
+
+#giftBtn{
+    height: 0.8em;
+    width: 0.8em;
+}
+
+#giftBtn.focus{
+    color: #f8a5c2;
+}
+
+#soundBtnOn.focus{
+    color: #2ed573;
+}
+
+#btnList li:hover #giftBtn{
+    color: #f8a5c2;
+}
+
+#btnList li:hover #soundBtnOn{
+    color: #2ed573;
+}
+
+#btnList li:hover #exitBtn{
+    color: #ff4757;
+}
+
+
+
+
+

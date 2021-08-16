@@ -9,7 +9,6 @@ function createWindow() {
     mainWindow = new BrowserWindow({ width: 320, height: 280, frame: false, transparent: true });
     mainWindow.setPosition( 40, 43);
     mainWindow.setAlwaysOnTop(true, 'screen');
-    mainWindow.setResizable(true);
     mainWindow.loadURL(
         isDev
             ? "http://localhost:3000"

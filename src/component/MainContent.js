@@ -1,255 +1,285 @@
 import React from "react";
 const { LiveWS } = require('bilibili-live-ws');
+const speechSynthesis = window.speechSynthesis;
+
+const lang = 'zh';
 
 class MainContent extends React.Component{
     constructor(props) {
         super(props);
 
         this.state = {
-            msgList: [],
-            sound: true,
-            log: false
+            danMu: [],
+            enter: [],
+            enter_effect: "",
+            special_enter: "",
+            gift: [],
+            expand: false,
+            sound: false,
+            giftOnly: false
         }
 
-        this.count = 0;
-        this.speechSynthesis = window.speechSynthesis;
+        this.key=0;
     }
 
-    componentDidMount= () => {
-        this.initLive();
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        const elem = document.getElementById('danmuArea');
-        elem.scrollTop = elem.scrollHeight;
-    }
-
-    addMsg = (content) => {
-        const msgList = this.state.msgList.slice(0);
-        msgList.push(content);
-
-        this.setState({ msgList });
-    }
-
-    filterMsg = () => {
-        const msgList = this.state.msgList.slice(0);
-        const log = this.state.log;
-        const msgShowing = [];
-
-        // only show gift message
-        if(log){
-            for(let giftMsg of msgList.filter(msg => msg.type === "gift")){
-                msgShowing.push(<li key={giftMsg.count}><p><small><span className='username'>{ giftMsg.username }</span>赠送了{ giftMsg.num }个<span className='giftName'>{  giftMsg.giftName }</span></small></p></li>);
-            }
-
-            return msgShowing;
-        }
-
-        msgShowing.push(<li key={0}><p>已连接到房间</p></li>);
-
-        const danmus = msgList.filter(msg => msg.type ==='danmu');
-        for(let temp of danmus.slice(danmus.length - 20, danmus.length)){
-            msgShowing.push(<li key={temp.count}><p><a href={ 'https://space.bilibili.com/' + temp.userId} target='_blank' rel='noreferrer'>{ temp.username }</a>: { temp.content }</p></li>)
-        }
-
-        let content;
-
-        const greetings = msgList.filter(msg => msg.type === "enter room")
-        if(greetings.length > 0){
-            content = greetings[greetings.length - 1];
-            msgShowing.push(<li key={content.count}><p><small><span className='username'>{ content.username }</span> 进入了直播间</small></p></li>);
-        }
-
-        const gifts = msgList.filter(msg => msg.type === "gift")
-        if(gifts.length > 0){
-            content = gifts[gifts.length - 1];
-            msgShowing.push(<li key={content.count}><p><small><span className='username'>{ content.username }</span> 赠送了 { content.num } 个 <span className='giftName'>{ content.giftName }</span></small></p></li>)
-        }
-
-        return msgShowing
-    }
-
-    speak = (str) => {
-        const msg = new SpeechSynthesisUtterance(str.trim());
-        msg.lang = 'zh';
-        msg.rate = 1.2;
-        this.speechSynthesis.speak(msg);
-    }
-
-    initLive = () => {
+    componentDidMount() {
+        // set up stream
         const live = new LiveWS(Number(this.props.roomId));
+        this.live = live;
 
         live.on('open', () => {
             if(this.state.sound){
-                this.speak("连接中");
+                const temp = new SpeechSynthesisUtterance("已连接到直播间");
+                temp.lang = lang;
+                speechSynthesis.speak(temp);
             }
+
+            console.log("Connected");
         });
 
         live.on('live', () => {
-            this.addMsg({
-                type: "init",
-                content: "",
-                count: ++this.count
-            });
-
-            if(this.state.sound){
-                this.speak("已连接到直播间" + this.props.roomId);
-            }
-
-            live.on('heartbeat', () => {});
+            // live.on('heartbeat', console.log);
 
             live.on('DANMU_MSG', (data) => {
-                const username = data.info[2][1];
-                const userId = data.info[2][0];
-                const content = data.info[1];
-
-                if(this.state.sound){
-                    const msgList = this.state.msgList.slice(0);
-                    const lastOne = msgList[msgList.length - 1]
-
-                    if(lastOne.type === 'danmu' && lastOne.username === username){
-                        if(lastOne.content === content) {
-                            this.speak(username + "请不要刷屏");
-                        }else {
-                            this.speak(content);
-                        }
-                    }else{
-                        this.speak(username + "说：" + content);
-                    }
+                const msg = {};
+                msg.username = data.info[2][1];
+                msg.userId = data.info[2][0];
+                msg.content = data.info[1];
+                if(data.info[3].length > 0){
+                    msg.medal_name = data.info[3][1];
+                    msg.medal_level = data.info[3][0];
                 }
+                msg.key = ++this.key;
 
-                this.addMsg({
-                    type: "danmu",
-                    username,
-                    userId,
-                    content,
-                    count: ++this.count
-                })
-            })
-
-            live.on('INTERACT_WORD', (data) => {
-                const username = data.data['uname']
-
-                if(this.state.sound){
-                    const msgList = this.state.msgList.slice(0);
-                    const lastOne = msgList[msgList.length - 1]
-                    this.speak(username + "进入了直播间");
-                    if(lastOne.type === 'enter room' && lastOne.username === username)
-                        this.speak(username + "请不要反复横跳");
-                }
-
-                this.addMsg({
-                    type: "enter room",
-                    username,
-                    count: ++this.count
-                })
+                this.addMsg('danMu', msg);
             })
 
             live.on('SEND_GIFT', (data) => {
-                const username = data.data['uname'];
-                const giftName = data.data['giftName'];
-                const num = data.data['num'];
+                const msg = {};
+                msg.username = data.data['uname'];
+                msg.giftname = data.data['giftName'];
+                msg.num = data.data['num'];
+                msg.userIcon = data.data['face'];
+                msg.key = ++this.key;
 
-                if(this.state.sound){
-                    const msgList = this.state.msgList.slice(0);
-                    const lastOne = msgList[msgList.length - 1];
+                this.addMsg('gift', msg);
+            })
 
-                    if(lastOne.type !== 'gift' || (lastOne.username && lastOne.username !== username)){
-                        this.speak("感谢" + username + "赠送的" + num + "个" + giftName);
-                    }
-                }
+            live.on('COMBO_SEND', (data) => {
+                this.addMsg('gift_combo', data);
+            })
 
-                this.addMsg({
-                    type: "gift",
-                    username,
-                    giftName,
-                    num,
-                    count: ++this.count
-                })
+            live.on('INTERACT_WORD', (data) => {
+                this.addMsg('enter_effect', data.data['uname']);
+            })
+
+            live.on('ENTRY_EFFECT', (data) => {
+                let msg =  data.data['copy_writing'];
+                msg = msg.replace('<%', '');
+                msg = msg.replace('%>', '');
+
+                this.addMsg('special_enter', msg)
             })
         })
 
-        live.on('close', () => this.addMsg({ type:"disconnect" }));
+        live.on('close', () => console.log("Disconnected"));
     }
 
-    // mute
-    switchSound = () => {
-        if(this.state.sound){
-            this.speechSynthesis.cancel();
-            this.setState({ sound: false });
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        // after page update, automatically scroll to bottom.
+        const element = document.getElementById('danMuArea');
+        element.scrollTop = element.scrollHeight;
+    }
+
+    addMsg = (type, data) => {
+        switch (type){
+            case 'danMu':
+                const danMu = this.state.danMu;
+                danMu.push(data);
+
+                if(this.state.sound){
+                    const temp = new SpeechSynthesisUtterance(`${data.username}说：${data.content}`);
+                    temp.lang = lang;
+                    speechSynthesis.speak(temp);
+                }
+
+                this.setState({ danMu });
+                break;
+            case 'gift':
+                const gift = this.state.gift;
+
+                if(this.state.sound){
+                    const username = data.username;
+                    // 如果连续赠送礼物只读第一次， 等待b站客户端发送的combo send讯息
+                    if(gift.length === 0 || gift[gift.length-1].username !== username){
+                        const temp = new SpeechSynthesisUtterance(`感谢${data.username}赠送的${data.num}个${data.giftname}`);
+                        temp.lang = lang;
+                        speechSynthesis.speak(temp);
+                    }
+                }
+
+                gift.push(data);
+                this.setState({ gift })
+                break;
+            case 'gift_combo':
+                if(this.state.sound){
+                    const temp = new SpeechSynthesisUtterance(`感谢${data.data['uname']}连续赠送的${data.data['combo_num']}个${data.data['gift_name']}`);
+                    temp.lang = lang;
+                    speechSynthesis.speak(temp);
+                }
+                break;
+            case 'enter_effect':
+                if(this.state.sound){
+                    const temp = new SpeechSynthesisUtterance(`${data}进入了直播间`);
+                    temp.lang = lang;
+                    speechSynthesis.speak(temp);
+                }
+                this.setState({ enter_effect: data });
+                break;
+            case 'special_enter':
+                if(this.state.sound){
+                    const temp = new SpeechSynthesisUtterance(data);
+                    temp.lang = lang;
+                    speechSynthesis.speak(temp);
+                }
+                this.setState({ special_enter: data });
+                break;
+            default:
+                // won't reach
+                break;
+        }
+    }
+
+    getShowing = () => {
+        const showing = [];
+        if(!this.state.giftOnly){
+            const danMu = this.state.danMu;
+            if(danMu.length < 20){
+                showing.push(<li key='0'>已连接到直播间</li>)
+            }
+
+            const needed = danMu.length >= 20 ? danMu.slice(this.state.danMu.length-20) : danMu.slice(0);
+            for(let temp of needed){
+                showing.push(<li key={ temp.key }><div className='medal'><span className='medalName'>{ temp.medal_name }</span> <span className='medalLevel'>{ temp.medal_level }</span></div> <a href={ 'https://space.bilibili.com/' + temp.userId } target='_blank' rel='noreferrer'>{ temp.username }</a>：{ temp.content }</li>)
+            }
+
+            if(this.state.special_enter){
+                showing.push(<li className='enterEffect' key='-2'><span className='specialEnter'>{this.state.special_enter}</span></li>)
+            }
+
+            // user enter room
+            if(this.state.enter_effect){
+                showing.push(<li className='enterEffect' key='-1'><span className='username'>{this.state.enter_effect}</span> 进入了直播间</li>)
+            }
+
+            // send gift
+            const gift = this.state.gift;
+            if(gift.length > 0) {
+                const lastOne = gift[gift.length - 1];
+                showing.push(<li className='giftDisplay' key={ lastOne.key }><img className='userIcon' src={ lastOne.userIcon } alt=""/> <span className='username'>{ lastOne.username }</span> 赠送了 <span className='giftNum'>{ lastOne.num }</span> 个 <span className='giftName'>{ lastOne.giftname }</span></li>)
+            }
         }else {
-            this.setState({ sound: true });
+            // gift only return value
+            const gift = this.state.gift;
+            const users = new Map();
+
+            for(let temp of gift){
+                if(users.has(temp.username)){
+                    const map = users.get(temp.username);
+                    if(map.has(temp.giftname)){
+                        map.set(temp.giftname, map.get(temp.giftname) + temp.num);
+                    }else {
+                        map.set(temp.giftname, temp.num);
+                    }
+                }else {
+                    const map = new Map();
+                    map.set('face', temp.userIcon);
+                    map.set(temp.giftname, temp.num);
+                    users.set(temp.username, map);
+                }
+            }
+
+            let index = 0;
+            for(let singleUser of users.keys()){
+                const map = users.get(singleUser);
+                const icon = map.get('face');
+
+                for(let singleGift of map.keys()){
+                    if(singleGift === 'face'){
+                        continue;
+                    }
+                    showing.push(<li className='giftDisplay' key={ ++index }><img className='userIcon' src={ icon } alt=""/> <span className='username'>{ singleUser }</span> 赠送了 <span className='giftNum'>{ map.get(singleGift) }</span> 个 <span className='giftName'>{ singleGift }</span></li>)
+                }
+            }
         }
+
+        return showing;
     }
 
-    switchLog = () => {
-        this.setState({ log: !this.state.log })
+    switchBtnGroup = () => {
+        this.setState({ expand: !this.state.expand })
     }
 
-    cleanLog = () => {
-        this.speechSynthesis.cancel();
+    switchSound = () => {
+        speechSynthesis.cancel();
 
-        this.count = 0;
-        this.setState({
-            msgList: [{ type: "init", content: "refreshed" }]
-        });
+        this.setState({ sound: !this.state.sound })
     }
 
-    exitRoom = () => {
-        if(this.state.sound){
-            this.switchSound();
-        }
-        setTimeout(()=>{
-            this.props.selectRoom(-1);
-        }, 500)
+    switchGiftOnly = () => {
+        this.setState({ giftOnly: !this.state.giftOnly })
     }
 
     render() {
+        const expand = this.state.expand;
+
         return(
-            <div className='Wrapper'>
-                <ul id='danmuArea' className="noDrag">
-                    { this.filterMsg() }
+            <div id='mainContent'>
+                <ul id='danMuArea'>
+                    { this.getShowing() }
                 </ul>
-                <div className='btns'>
-                    <button className='mainBtn' id='refresh' title='refresh' onClick={ this.cleanLog }>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="bi" viewBox="0 0 16 16">
-                            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                <ul id='btnList'>
+                    <li className={ expand ? "" : "conceal" } onClick={ this.switchGiftOnly }>
+                        <svg xmlns="http://www.w3.org/2000/svg" id='giftBtn' className={this.state.giftOnly ? "focus" : ""} fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M3 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0v.006c0 .07 0 .27-.038.494H15a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2.038A2.968 2.968 0 0 1 3 2.506V2.5zm1.068.5H7v-.5a1.5 1.5 0 1 0-3 0c0 .085.002.274.045.43a.522.522 0 0 0 .023.07zM9 3h2.932a.56.56 0 0 0 .023-.07c.043-.156.045-.345.045-.43a1.5 1.5 0 0 0-3 0V3zm6 4v7.5a1.5 1.5 0 0 1-1.5 1.5H9V7h6zM2.5 16A1.5 1.5 0 0 1 1 14.5V7h6v9H2.5z"/>
                         </svg>
-                    </button>
-                    <button className='mainBtn' id='gift' title={ this.state.log ? 'show all message' : 'only show gifts' } onClick={ this.switchLog }>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill={ this.state.log ? "#fab1a0" :"currentColor" } className="bi" viewBox="0 0 16 16">
-                            <path d="M3 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0v.006c0 .07 0 .27-.038.494H15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 14.5V7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2.038A2.968 2.968 0 0 1 3 2.506V2.5zm1.068.5H7v-.5a1.5 1.5 0 1 0-3 0c0 .085.002.274.045.43a.522.522 0 0 0 .023.07zM9 3h2.932a.56.56 0 0 0 .023-.07c.043-.156.045-.345.045-.43a1.5 1.5 0 0 0-3 0V3zM1 4v2h6V4H1zm8 0v2h6V4H9zm5 3H9v8h4.5a.5.5 0 0 0 .5-.5V7zm-7 8V7H2v7.5a.5.5 0 0 0 .5.5H7z"/>
-                        </svg>
-                    </button>
-                    <button className='mainBtn' id='mute' title={ this.state.sound ? 'mute' : 'unmute' } onClick={ this.switchSound }>
+                    </li>
+                    <li className={ expand ? "" : "conceal" } onClick={ this.switchSound }>
                         {
                             this.state.sound
-                                ?
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="#2ed573" className="bi" viewBox="0 0 16 16">
+                                ? <svg xmlns="http://www.w3.org/2000/svg" id='soundBtnOn'  className={this.state.sound ? "focus" : ""} fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/>
                                     <path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.483 5.483 0 0 1 11.025 8a5.483 5.483 0 0 1-1.61 3.89l.706.706z"/>
                                     <path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/>
                                 </svg>
-                                :
-                                <svg xmlns="http://www.w3.org/2000/svg" fill='#ee5253' className="bi" viewBox="0 0 16 16">
+                                : <svg xmlns="http://www.w3.org/2000/svg" id='soundBtnOff' fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/>
                                 </svg>
                         }
-                    </button>
-                    <button className='mainBtn' id='exit' title='exit room' onClick={ this.exitRoom }>
-                        {
-                            <svg xmlns="http://www.w3.org/2000/svg" fill='currentColor' className="bi" viewBox="0 0 16 16">
-                                <path d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
-                                <path d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-                            </svg>
+                    </li>
+                    <li className={ expand ? "" : "conceal" } onClick={ () => {
+                        if(this.state.sound){
+                            this.switchSound();
                         }
-                    </button>
-                </div>
-            </div>
 
+                        setTimeout(() => {
+                            this.props.setRoomId(-1)
+                        }, 500);
+                    } }>
+                        <svg xmlns="http://www.w3.org/2000/svg" id="exitBtn" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                            <path d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                    </li>
+                    <li onClick={ this.switchBtnGroup }>
+                        <svg xmlns="http://www.w3.org/2000/svg" id="expandBtn" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                        </svg>
+                    </li>
+                </ul>
+            </div>
         );
-    };
+    }
 }
 
 export default MainContent;
