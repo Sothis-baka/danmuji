@@ -16,11 +16,11 @@ room id不能是短id， 需要在个人空间查看对应长id， 或者使用�
 
 [Bilibili](https://www.bilibili.com/video/BV1Xq4y1S7co/)
 
-![image-20210824035723788](C:\Users\17690\AppData\Roaming\Typora\typora-user-images\image-20210824035723788.png)
+![image-20210824035723788](https://raw.githubusercontent.com/Sothis-baka/danmuji/main/sources/screenshot1.png)
 
-![image-20210824040045435](C:\Users\17690\AppData\Roaming\Typora\typora-user-images\image-20210824040045435.png)
+![image-20210824040045435](https://raw.githubusercontent.com/Sothis-baka/danmuji/main/sources/screenshot2.png)
 
-![image-20210824040107176](C:\Users\17690\AppData\Roaming\Typora\typora-user-images\image-20210824040107176.png)
+![image-20210824040107176](https://raw.githubusercontent.com/Sothis-baka/danmuji/main/sources/screenshot3.png)
 
 
 
